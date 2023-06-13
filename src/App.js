@@ -1,56 +1,60 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
+import React, { useEffect } from 'react';    
 import './App.css';
+import WebcamCapture from './WebcamCapture'
+import Preview from './Preview';
+import Chats from './Chats'
+import ChatView from './ChatView'
+import { BrowserRouter as Router, Routes, Route} from 'react-router-dom'
+import { login, logout, selectUser } from "./features/appSlice"
+import { useDispatch, useSelector } from "react-redux"
+import Login from './Login'
+import {auth} from "./Firebase"
+
 
 function App() {
+
+  const user = useSelector(selectUser)
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    auth.onAuthStateChanged((authUser) => {
+      if (authUser) {
+        dispatch(
+          login({
+            username: authUser.displayName,
+            profilePic: authUser.photoURL,
+            id: authUser.uid,
+          })
+        );
+      } else {
+        dispatch(logout());
+      }
+    })
+  }, [])
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
-      </header>
+     <Router>
+      {!user ? (
+        <Login />
+      ) : (
+
+        <>
+        <img className='app__logo' src='https://lakeridgenewsonline.com/wp-content/uploads/2020/04/snapchat.jpg' alt='' />
+        <div className="app__body">
+          <Routes className="app__bodyBackground">
+          
+              <Route path="/" element={<WebcamCapture />} exact/>
+              <Route path="/chats/view" element={<ChatView />} exact/>
+              <Route path="/preview" element={<Preview />} />
+              <Route path="/chats" element={<Chats />} />
+          
+          </Routes>
+        </div>
+        </>
+      )} 
+        
+      </Router>
     </div>
   );
 }
